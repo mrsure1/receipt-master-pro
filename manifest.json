@@ -1,0 +1,18 @@
+
+{
+  "short_name": "영수증마스터",
+  "name": "Receipt Master Pro - 영수증 정리 앱",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/1052/1052856.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "index.html",
+  "display": "standalone",
+  "theme_color": "#2563eb",
+  "background_color": "#ffffff",
+  "description": "AI 기반 영수증 스캔 및 가계부 정리 앱"
+}
