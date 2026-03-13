@@ -1,0 +1,44 @@
+{
+  "entities": {
+    "Receipt": {
+      "title": "Receipt",
+      "description": "A receipt uploaded by a user",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "merchant_name": { "type": "string" },
+        "date": { "type": "string" },
+        "time": { "type": "string" },
+        "total_amount": { "type": "number" },
+        "tax_amount": { "type": "number" },
+        "currency": { "type": "string" },
+        "payment_method": { "type": "string" },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "qty": { "type": "number" },
+              "price": { "type": "number" },
+              "line_total": { "type": "number" }
+            }
+          }
+        },
+        "category": { "type": "string" },
+        "raw_text": { "type": "string" },
+        "image_uri": { "type": "string" },
+        "confidence": { "type": "number" },
+        "memo": { "type": "string" }
+      },
+      "required": ["id", "userId", "merchant_name", "date", "total_amount", "currency"]
+    }
+  },
+  "firestore": {
+    "receipts/{receiptId}": {
+      "schema": { "$ref": "#/entities/Receipt" },
+      "description": "Stores user receipts"
+    }
+  }
+}

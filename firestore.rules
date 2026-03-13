@@ -1,0 +1,90 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: receipts
+    // Document ID: [receiptId]
+    // Fields:
+    //   - id: string (required)
+    //   - userId: string (required)
+    //   - merchant_name: string (required)
+    //   - date: string (required)
+    //   - time: string (optional)
+    //   - total_amount: number (required)
+    //   - tax_amount: number (optional)
+    //   - currency: string (required)
+    //   - payment_method: string (optional)
+    //   - items: list (optional)
+    //   - category: string (optional)
+    //   - raw_text: string (optional)
+    //   - image_uri: string (optional)
+    //   - confidence: number (optional)
+    //   - memo: string (optional)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function validStringLength(field, minLen, maxLen) {
+      return request.resource.data[field] is string &&
+        request.resource.data[field].size() >= minLen &&
+        request.resource.data[field].size() <= maxLen;
+    }
+
+    function isValidOptionalString(field, minLen, maxLen) {
+      return !(field in request.resource.data) ||
+             (request.resource.data[field] is string &&
+              request.resource.data[field].size() >= minLen &&
+              request.resource.data[field].size() <= maxLen);
+    }
+
+    function isValidList(list, maxSize) {
+      return list is list && list.size() <= maxSize;
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+    function isValidReceipt(data) {
+      return hasRequiredFields(['id', 'userId', 'merchant_name', 'date', 'total_amount', 'currency']) &&
+             data.id is string && data.id.size() > 0 && data.id.size() < 100 &&
+             data.userId is string && data.userId == request.auth.uid &&
+             data.merchant_name is string && data.merchant_name.size() > 0 && data.merchant_name.size() < 200 &&
+             data.date is string && data.date.size() > 0 && data.date.size() < 20 &&
+             data.total_amount is number &&
+             data.currency is string && data.currency.size() > 0 && data.currency.size() < 10 &&
+             isValidOptionalString('time', 0, 20) &&
+             (!( 'tax_amount' in data ) || data.tax_amount is number) &&
+             isValidOptionalString('payment_method', 0, 50) &&
+             isValidOptionalString('category', 0, 50) &&
+             isValidOptionalString('raw_text', 0, 100000) && // OCR text can be long
+             isValidOptionalString('image_uri', 0, 2000000) && // Base64 image can be very long
+             (!( 'confidence' in data ) || data.confidence is number) &&
+             isValidOptionalString('memo', 0, 1000) &&
+             (!( 'items' in data ) || isValidList(data.items, 500));
+    }
+
+    match /receipts/{receiptId} {
+      allow read: if isAuthenticated() && isOwner(resource.data.userId);
+      allow create: if isAuthenticated() && isOwner(request.resource.data.userId) && isValidReceipt(request.resource.data);
+      allow update: if isAuthenticated() && isOwner(resource.data.userId) && isOwner(request.resource.data.userId) && isValidReceipt(request.resource.data);
+      allow delete: if isAuthenticated() && isOwner(resource.data.userId);
+    }
+  }
+}

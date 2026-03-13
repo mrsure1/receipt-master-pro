@@ -1,0 +1,7 @@
+{
+  "name": "Copy of Receipt Master Pro",
+  "description": "Professional receipt scanner and expense manager with AI-powered OCR, automated categorization, and detailed financial reporting.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
